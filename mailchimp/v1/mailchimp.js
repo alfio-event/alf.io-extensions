@@ -24,12 +24,30 @@ function getScriptMetadata() {
     };
 }
 
+var CustomerName = Java.type('alfio.model.CustomerName');
+
 /**
  * Executes the extension.
  * @param scriptEvent
  * @returns Object
  */
 function executeScript(scriptEvent) {
-    log.warn('hello from script with event: ' + scriptEvent);
-    log.warn('extension parameters are: ' + extensionParameters);
+    if('TICKET_ASSIGNED' === scriptEvent) {
+        var customerName = new CustomerName(ticket.fullName, ticket.firstName, ticket.lastName, event);
+        subscribeUser(ticket.email, customerName, ticket.userLanguage, event);
+    } else if ('RESERVATION_CONFIRMED' === scriptEvent) {
+        var customerName = new CustomerName(reservation.fullName, reservation.firstName, reservation.lastName, event);
+        subscribeUser(reservation.email, customerName, reservation.userLanguage, event);
+    } else if ('WAITING_QUEUE_SUBSCRIPTION' === scriptEvent) {
+        var customerName = new CustomerName(waitingQueueSubscription.fullName, waitingQueueSubscription.firstName, waitingQueueSubscription.lastName, event);
+        subscribeUser(waitingQueueSubscription.emailAddress, customerName, waitingQueueSubscription.userLanguage, event);
+    }
+}
+
+
+function subscribeUser(email, customerName, language, event) {
+  log.warn('email is ' + email);
+  log.warn('customer name is ' + customerName);
+  log.warn('language is ' + language);
+  log.warn('event is ' + event);
 }
