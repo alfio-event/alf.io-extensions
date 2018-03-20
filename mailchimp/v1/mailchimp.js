@@ -46,8 +46,21 @@ function executeScript(scriptEvent) {
 
 
 function subscribeUser(email, customerName, language, event) {
-  log.warn('email is ' + email);
-  log.warn('customer name is ' + customerName);
-  log.warn('language is ' + language);
-  log.warn('event is ' + event);
+
+  var eventShortName = event.shortName;
+  var listAddress = 'https://' + extensionParameters.dataCenter + '.api.mailchimp.com/3.0/lists/' + extensionParameters.listId + '/'
+  var apiKey = extensionParameters.apiKey;
+  
+  createMergeFieldIfNotPresent(listAddress, apiKey, event.id, eventShortName);
+  send();
+}
+
+function createMergeFieldIfNotPresent(listAddress, apiKey, eventId, eventShortName) {
+  log.warn('listAddress is ' + listAddress);
+  log.warn('apiKey is ' + apiKey);
+  log.warn('eventId is ' + eventId);
+  log.warn('eventShortName is ' + eventShortName);
+}
+
+function send() {
 }
