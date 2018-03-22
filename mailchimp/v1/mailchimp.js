@@ -25,14 +25,9 @@ function getScriptMetadata() {
 }
 
 var CustomerName = Java.type('alfio.model.CustomerName');
-var Request = Java.type('okhttp3.Request');
-var RequestBody = Java.type('okhttp3.RequestBody');
-var Credentials = Java.type('okhttp3.Credentials');
-var MediaType = Java.type('okhttp3.MediaType');
 var HashMap = Java.type('java.util.HashMap');
 var Map = Java.type('java.util.Map');
 var JavaString = Java.type('java.lang.String');
-
 
 var MERGE_FIELDS = "merge-fields/";
 var ALFIO_EVENT_KEY = "ALFIO_EKEY";
@@ -68,25 +63,20 @@ function subscribeUser(email, customerName, language, event) {
   send(event.id, listAddress + LIST_MEMBERS + md5Email, apiKey, email, customerName, language, eventShortName);
 }
 
+
 function createMergeFieldIfNotPresent(listAddress, apiKey, eventId, eventShortName) {
-  var request = new Request.Builder()
-    .url(listAddress + MERGE_FIELDS)
-    .header("Authorization", Credentials.basic("alfio", apiKey))
-    .get()
-    .build();
+
   try {
-    var response = httpClient.newCall(request).execute();
-    var body = response.body();
+    var res = simpleHttpClient.get(listAddress + MERGE_FIELDS, {'Authorization': simpleHttpClient.basicCredentials('alfio', apiKey)});
+    var body = res.body;
     if(body == null) {
       log.warn("null response from mailchimp for list {}", listAddress);
       return;
     }
-    var responseBody = body.string();
-    if(!responseBody.contains(ALFIO_EVENT_KEY)) {
+    if(!body.contains(ALFIO_EVENT_KEY)) {
       log.debug("can't find ALFIO_EKEY for event " + eventShortName);
       createMergeField(listAddress, apiKey, eventShortName, eventId);
     }
-    response.close();
   } catch (e) {
     log.warn("exception while reading merge fields for event id "+eventId, e);
     extensionLogger.logWarning(JavaString.format("Cannot get merge fields for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));
@@ -100,18 +90,12 @@ function createMergeField(listAddress, apiKey, eventShortName, eventId) {
   mergeField.put("type", "text");
   mergeField.put("required", false);
   mergeField.put("public", false);
-  var request = new Request.Builder()
-    .url(listAddress + MERGE_FIELDS)
-    .header("Authorization", Credentials.basic("alfio", apiKey))
-    .post(RequestBody.create(MediaType.parse(APPLICATION_JSON), GSON.toJson(mergeField, Map.class)))
-    .build();
   try {
-    var response = httpClient.newCall(request).execute()
+    var response = simpleHttpClient.post(listAddress + MERGE_FIELDS, {'Authorization': simpleHttpClient.basicCredentials('alfio', apiKey)}, mergeField);
     if(!response.isSuccessful()) {
-      var body = response.body();
-      log.warn("can't create {} merge field. Got: {}", ALFIO_EVENT_KEY, body != null ? body.string() : "null");
+      var body = response.body;
+      log.warn("can't create {} merge field. Got: {}", ALFIO_EVENT_KEY, body != null ? body : "null");
     }
-    response.close();
   } catch(e) {
     log.warn("exception while creating ALFIO_EKEY for event id "+eventId, e);
     extensionLogger.logWarning(JavaString.format("Cannot create merge field for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));
@@ -127,34 +111,25 @@ function send(eventId, address, apiKey, email, name, language, eventShortName) {
   mergeFields.put(ALFIO_EVENT_KEY, eventShortName);
   content.put("merge_fields", mergeFields);
   content.put("language", language);
-  var request = new Request.Builder()
-    .url(address)
-    .header("Authorization", Credentials.basic("alfio", apiKey))
-    .put(RequestBody.create(MediaType.parse(APPLICATION_JSON), GSON.toJson(content, Map.class)))
-    .build();
   try {
-    var response = httpClient.newCall(request).execute();
+    var response = simpleHttpClient.put(address, {'Authorization': simpleHttpClient.basicCredentials('alfio', apiKey)}, content);
     if(response.isSuccessful()) {
       extensionLogger.logSuccess(JavaString.format("user %s has been subscribed to list", email));
-      response.close();
       return;
     }
-    var body = response.body();
+    var body = response.body;
     if(body == null) {
-      response.close();
       return;
     }
-    var responseBody = body.string();
-    if (response.code() != 400 || responseBody.contains("\"errors\"")) {
-      extensionLogger.logError(JavaString.format(FAILURE_MSG, email, name, language, responseBody));
+
+    if (response.code != 400 || body.contains("\"errors\"")) {
+      extensionLogger.logError(JavaString.format(FAILURE_MSG, email, name, language, body));
     } else {
-      extensionLogger.logWarning(JavaString.format(FAILURE_MSG, email, name, language, responseBody));
+      extensionLogger.logWarning(JavaString.format(FAILURE_MSG, email, name, language, body));
     }
-    response.close();
-    return;
   } catch(e) {
     log.warn("exception while creating ALFIO_EKEY for event id "+eventId, e);
-    extensionLogger.logError(JavaString.format("Cannot create merge field for %s, got: %s", eventKey, e.getMessage ? e.getMessage() : e));  
+    extensionLogger.logError(JavaString.format("Cannot create merge field for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));  
   }
 }
 
