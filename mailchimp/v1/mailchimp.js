@@ -128,8 +128,7 @@ function send(eventId, address, apiKey, email, name, language, eventShortName) {
       extensionLogger.logWarning(JavaString.format(FAILURE_MSG, email, name, language, body));
     }
   } catch(e) {
-    log.warn("exception while creating ALFIO_EKEY for event id "+eventId, e);
-    extensionLogger.logError(JavaString.format("Cannot create merge field for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));  
+    extensionLogger.logError(JavaString.format(FAILURE_MSG, email, name, language, e.getMessage ? e.getMessage() : e));
   }
 }
 
