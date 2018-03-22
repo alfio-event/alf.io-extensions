@@ -53,7 +53,7 @@ function executeScript(scriptEvent) {
 function subscribeUser(email, customerName, language, event) {
   var eventShortName = event.shortName;
   
-  var dataCenter = extensionParameters.apiKey.split(/.+\-([a-zA-Z0-9]+)/)[1];
+  var dataCenter = extensionParameters.apiKey.match(/\-([a-zA-Z0-9]+)$/)[1];
   
   var listAddress = 'https://' + dataCenter + '.api.mailchimp.com/3.0/lists/' + extensionParameters.listId + '/'
   var apiKey = extensionParameters.apiKey;
