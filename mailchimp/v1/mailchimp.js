@@ -15,7 +15,6 @@ function getScriptMetadata() {
         ],
         parameters: {
             fields: [
-              {name:'dataCenter',description:'The MailChimp data center used by your account (e.g. us6)',type:'TEXT',required:true},
               {name:'apiKey',description:'The Mailchimp API Key',type:'TEXT',required:true},
               {name:'listId',description:'The list ID, see http://kb.mailchimp.com/lists/manage-contacts/find-your-list-id',type:'TEXT',required:true}
             ],
@@ -25,9 +24,6 @@ function getScriptMetadata() {
 }
 
 var CustomerName = Java.type('alfio.model.CustomerName');
-var HashMap = Java.type('java.util.HashMap');
-var Map = Java.type('java.util.Map');
-var JavaString = Java.type('java.lang.String');
 
 var MERGE_FIELDS = "merge-fields/";
 var ALFIO_EVENT_KEY = "ALFIO_EKEY";
@@ -56,10 +52,13 @@ function executeScript(scriptEvent) {
 
 function subscribeUser(email, customerName, language, event) {
   var eventShortName = event.shortName;
-  var listAddress = 'https://' + extensionParameters.dataCenter + '.api.mailchimp.com/3.0/lists/' + extensionParameters.listId + '/'
+  
+  var dataCenter = extensionParameters.apiKey.split(/.+\-([a-zA-Z0-9]+)/)[1];
+  
+  var listAddress = 'https://' + dataCenter + '.api.mailchimp.com/3.0/lists/' + extensionParameters.listId + '/'
   var apiKey = extensionParameters.apiKey;
   createMergeFieldIfNotPresent(listAddress, apiKey, event.id, eventShortName);
-  var md5Email = getMd5Email(email);
+  var md5Email = ExtensionUtils.md5(email);
   send(event.id, listAddress + LIST_MEMBERS + md5Email, apiKey, email, customerName, language, eventShortName);
 }
 
@@ -79,7 +78,7 @@ function createMergeFieldIfNotPresent(listAddress, apiKey, eventId, eventShortNa
     }
   } catch (e) {
     log.warn("exception while reading merge fields for event id "+eventId, e);
-    extensionLogger.logWarning(JavaString.format("Cannot get merge fields for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));
+    extensionLogger.logWarning(ExtensionUtils.format("Cannot get merge fields for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));
   }
 }
 
@@ -98,7 +97,7 @@ function createMergeField(listAddress, apiKey, eventShortName, eventId) {
     }
   } catch(e) {
     log.warn("exception while creating ALFIO_EKEY for event id "+eventId, e);
-    extensionLogger.logWarning(JavaString.format("Cannot create merge field for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));
+    extensionLogger.logWarning(ExtensionUtils.format("Cannot create merge field for %s, got: %s", eventShortName, e.getMessage ? e.getMessage() : e));
   }
 }
 
@@ -114,7 +113,7 @@ function send(eventId, address, apiKey, email, name, language, eventShortName) {
   try {
     var response = simpleHttpClient.put(address, {'Authorization': simpleHttpClient.basicCredentials('alfio', apiKey)}, content);
     if(response.isSuccessful()) {
-      extensionLogger.logSuccess(JavaString.format("user %s has been subscribed to list", email));
+      extensionLogger.logSuccess(ExtensionUtils.format("user %s has been subscribed to list", email));
       return;
     }
     var body = response.body;
@@ -123,21 +122,11 @@ function send(eventId, address, apiKey, email, name, language, eventShortName) {
     }
 
     if (response.code != 400 || body.contains("\"errors\"")) {
-      extensionLogger.logError(JavaString.format(FAILURE_MSG, email, name, language, body));
+      extensionLogger.logError(ExtensionUtils.format(FAILURE_MSG, email, name, language, body));
     } else {
-      extensionLogger.logWarning(JavaString.format(FAILURE_MSG, email, name, language, body));
+      extensionLogger.logWarning(ExtensionUtils.format(FAILURE_MSG, email, name, language, body));
     }
   } catch(e) {
-    extensionLogger.logError(JavaString.format(FAILURE_MSG, email, name, language, e.getMessage ? e.getMessage() : e));
-  }
-}
-
-function getMd5Email(email) {
-  try {
-    var Hex = Java.type('org.apache.commons.codec.binary.Hex');
-    var MessageDigest = Java.type('java.security.MessageDigest');
-    return Hex.encodeHexString(MessageDigest.getInstance("MD5").digest(email.trim().getBytes("UTF-8")));
-  } catch(e) {
-    log.warn(e);
+    extensionLogger.logError(ExtensionUtils.format(FAILURE_MSG, email, name, language, e.getMessage ? e.getMessage() : e));
   }
 }
