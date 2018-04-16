@@ -123,7 +123,7 @@ boolean
 extension will be invoked **synchronously** once one or more tickets (but not the entire reservation at once) have been cancelled
 
 ##### additional global variables
-* **ticketUUIDs**: String[] - the cencelled tickets UUIDs. **Please note** that once a ticket has been cancelled, its UUID is reset.
+* **ticketUUIDs**: String[] - the cancelled tickets UUIDs. **Please note** that once a ticket has been cancelled, its UUID is reset.
 
 #### TICKET_ASSIGNED
 
@@ -195,7 +195,7 @@ extensions will be invoked **asynchronously**
 
 ##### additional global variables
 
-* **reservationIds** List of String - list of reservation ids
+* **reservationIds** String[] - list of reservation ids
 
 #### EVENT_CREATED
 
