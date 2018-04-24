@@ -114,6 +114,7 @@ extensions will be invoked **synchronously** once one or more reservations have 
 
 ##### additional global variables
 * **reservationIds**: String[] - the reservation IDs
+* **reservations**: [TicketReservation](https://github.com/alfio-event/alf.io/blob/master/src/main/java/alfio/model/TicketReservation.java)[] - the TicketReservations
 
 ##### expected result type
 boolean
