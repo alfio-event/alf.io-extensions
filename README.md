@@ -43,7 +43,8 @@ function getScriptMetadata() {
             //'OFFLINE_RESERVATIONS_WILL_EXPIRE', //fired when an offline reservation will expire. No results expected.
             //'EVENT_CREATED', //fired when an event has been created. Return boolean for synchronous variant, no results expected for the asynchronous one.
             //'EVENT_STATUS_CHANGE', //fired when an event status has changed (normally, from DRAFT to PUBLIC). Return boolean for synchronous variant, no results expected for the asynchronous one.
-            'INVOICE_GENERATION' //fired on invoice generation. Returns the invoice model.
+            'INVOICE_GENERATION' //, //fired on invoice generation. Returns the invoice model.
+            //'TAX_ID_NUMBER_VALIDATION' //fired in case a TAX ID (VAT/GST) Number has to be formally validated
         ]
         //,
         //parameters: {fields: [{name:'name',description:'description',type:'TEXT',required:true}], configurationLevels: ['SYSTEM', 'ORGANIZATION', 'EVENT']} //parameters
@@ -180,6 +181,24 @@ extensions will be invoked **synchronously** while generating an invoice.
 ##### expected result type
 
 [InvoiceGeneration](https://github.com/alfio-event/alf.io/blob/master/src/main/java/alfio/model/extension/InvoiceGeneration.java) - The invoice content, currently limited to the invoice number.
+
+#### TAX_ID_NUMBER_VALIDATION
+
+extensions will be invoked **synchronously** when a Tax ID (VAT/GST) number has to be validated. 
+Please note that alf.io already supports EU VAT validation (by calling the EU VIES web service).
+In these cases, the TAX_ID validation will be called only as fallback.   
+
+##### Important
+Your extension should return a **failed** validation result if the country is not supported
+
+##### additional global variables
+
+* **countryCode**: String - the country code of the organizer.  
+* **taxIdNumber**: String - the Tax ID number
+
+##### expected result type
+
+boolean - The validation result.
 
 
 #### STUCK_RESERVATIONS
