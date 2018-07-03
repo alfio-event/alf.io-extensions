@@ -16,10 +16,10 @@ function getScriptMetadata() {
 
 function executeScript(scriptEvent) {
 
-    return 'TAX_ID_NUMBER_VALIDATION' === scriptEvent
+    return output || ('TAX_ID_NUMBER_VALIDATION' === scriptEvent
         && 'IT' === countryCode
         && taxIdNumber && taxIdNumber.length === 11
-        && validateIVA(taxIdNumber);
+        && validateIVA(taxIdNumber));
 }
 
 function validateIVA(number) {
