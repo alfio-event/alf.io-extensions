@@ -43,7 +43,7 @@ function retrieveMessageText() {
   send(apiKey, eventShortName, zipCode, country);
 }
 
-function send(eventId, address, apiKey, email, name, language, eventShortName) {
+function send(apiKey, eventShortName, zipCode, country) {
   var content = new HashMap();
   content.put("apiKey", apiKey);
   content.put("eventShortName", eventShortName);
