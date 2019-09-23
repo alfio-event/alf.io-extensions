@@ -50,5 +50,5 @@ function send(eventId, address, apiKey, email, name, language, eventShortName) {
   content.put("zipCode", zipCode);
   content.put("country", country);
   //For now just return a simple message
-  return 'Travelling to ' + eventShortName + ' from ' country '? Have you considered taking the train?';
+  return 'Travelling to ' + eventShortName + ' from ' + country + '? Have you considered taking the train?';
 }
